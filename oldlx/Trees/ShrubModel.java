@@ -112,7 +112,6 @@ class ShrubModel extends LXModel {
         this.shrubConfigs = shrubConfigs;
         Fixture f = (Fixture) this.fixtures.get(0);
         List<ShrubCube> _cubes = new ArrayList<ShrubCube>();
-        List<ShrubCubeConfig> _inactiveShrubCubeConfigs = new ArrayList<ShrubCubeConfig>();
         this.shrubs = Collections.unmodifiableList(f.shrubs);
         for (Shrub shrub : this.shrubs) {
             ipMap.putAll(shrub.ipMap);
@@ -250,7 +249,6 @@ class Shrub extends LXModel {
         final List<EntwinedCluster> shrubClusters = new ArrayList<EntwinedCluster>();
         public final Map<String, ShrubCube[]> ipMap = new HashMap<String, ShrubCube[]>();
         public final LXTransform transform;
-        public final List<ShrubCubeConfig> inactiveShrubCubeConfigs = new ArrayList<ShrubCubeConfig>();
 
         Fixture(List<ShrubCubeConfig> shrubCubeConfig, int shrubIndex, float x, float z, float ry, int[] canopyMajorLengths,
                 int[] clusterBaseHeights) {
@@ -449,11 +447,11 @@ class ShrubCube extends LXModel {
     }
 }
 
-abstract class Cluster extends LXLayer {
+abstract class ShrubLayer extends LXLayer {
 
     protected final ShrubModel model;
 
-    Cluster(LX lx) {
+    ShrubLayer(LX lx) {
         super(lx);
         model = (ShrubModel) lx.model;
     }
@@ -463,7 +461,7 @@ abstract class ShrubModelTransform extends Effect {
     ShrubModelTransform(LX lx) {
         super(lx);
 
-        model.addModelTransform(this);
+        shrubModel.addModelTransform(this);
     }
 
     @Override
