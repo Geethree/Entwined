@@ -127,8 +127,9 @@ class Model extends LXModel {
     private final ArrayList<ModelTransform> modelTransforms = new ArrayList<ModelTransform>();
     private final List<TreeConfig> treeConfigs;
 
-    Model(List<TreeConfig> treeConfigs, List<CubeConfig> cubeConfig) {
-        super(new Fixture(treeConfigs, cubeConfig));
+    Model(List<TreeConfig> treeConfigs, List<CubeConfig> cubeConfig, List<ShrubConfig> shrubConfigs,
+            List<ShrubCubeConfig> shrubCubeConfig) {
+        super(new Fixture(treeConfigs, cubeConfig, shrubConfigs, shrubCubeConfig));
         this.treeConfigs = treeConfigs;
         Fixture f = (Fixture) this.fixtures.get(0);
         List<Cube> _cubes = new ArrayList<Cube>();
@@ -139,19 +140,41 @@ class Model extends LXModel {
             _cubes.addAll(tree.cubes);
         }
         this.cubes = Collections.unmodifiableList(_cubes);
+
+        this.shrubConfigs = shrubConfigs;
+        List<ShrubCube> _shrubCubes = new ArrayList<ShrubCube>();
+        this.shrubs = Collections.unmodifiableList(f.shrubs);
+        for (Shrub shrub : this.shrubs) {
+            shrubIpMap.putAll(shrub.ipMap);
+            _shrubCubes.addAll(shrub.cubes);
+        }
+        this.shrubCubes = Collections.unmodifiableList(_shrubCubes);
     }
 
     private static class Fixture extends LXAbstractFixture {
 
         final List<Tree> trees = new ArrayList<Tree>();
 
-        private Fixture(List<TreeConfig> treeConfigs, List<CubeConfig> cubeConfigs) {
+        final List<Shrub> shrubs = new ArrayList<Shrub>();
+
+        private Fixture(List<TreeConfig> treeConfigs, List<CubeConfig> cubeConfigs, List<ShrubConfig> shrubConfigs,
+                List<ShrubCubeConfig> shrubCubeConfigs) {
             for (int i = 0; i < treeConfigs.size(); i++) {
                 TreeConfig tc = treeConfigs.get(i);
                 trees.add(new Tree(cubeConfigs, i, tc.x, tc.z, tc.ry, tc.canopyMajorLengths, tc.layerBaseHeights));
             }
             for (Tree tree : trees) {
                 for (LXPoint p : tree.points) {
+                    points.add(p);
+                }
+            }
+
+            for (int i = 0; i < shrubConfigs.size(); i++) {
+                ShrubConfig sc = shrubConfigs.get(i);
+                shrubs.add(new Shrub(shrubCubeConfigs, i, sc.x, sc.z, sc.ry, sc.canopyMajorLengths, sc.clusterBaseHeights));
+            }
+            for (Shrub shrub : shrubs) {
+                for (LXPoint p : shrub.points) {
                     points.add(p);
                 }
             }
@@ -186,6 +209,54 @@ class Model extends LXModel {
             }
         }
         for (Cube cube : cubes) {
+            cube.didTransform();
+        }
+    }
+
+    /**
+     * Shrubs in the model
+     */
+    public final List<Shrub> shrubs;
+
+    /**
+     * ShrubCubes in the model
+     */
+    public final List<ShrubCube> shrubCubes;
+    public final Map<String, ShrubCube[]> shrubIpMap = new HashMap<String, ShrubCube[]>();
+
+    private final ArrayList<ShrubModelTransform> shrubModelTransforms = new ArrayList<ShrubModelTransform>();
+    private final List<ShrubConfig> shrubConfigs;
+
+
+
+    public Vec3D getShrubMountPoint(ShrubCubeConfig c) {
+        Vec3D p = null;
+        Shrub shrub;
+        try {
+            shrub = this.shrubs.get(c.shrubIndex);
+            p = shrub.shrubClusters.get(c.clusterIndex).rods.get(c.rodIndex).mountingPoint;
+            return shrub.transformPoint(p);
+        } catch (Exception e) {
+            System.out.println("Error resolving mount point");
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    public void addShrubModelTransform(ShrubModelTransform modelTransform) {
+        shrubModelTransforms.add(modelTransform);
+    }
+
+    public void runShrubTransforms() {
+        for (ShrubCube cube : shrubCubes) {
+            cube.resetTransform();
+        }
+        for (ShrubModelTransform modelTransform : shrubModelTransforms) {
+            if (modelTransform.isEnabled()) {
+                modelTransform.transform(this);
+            }
+        }
+        for (ShrubCube cube : shrubCubes) {
             cube.didTransform();
         }
     }
