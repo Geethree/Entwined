@@ -25,18 +25,37 @@ class Rod {
     private double yKeyPoint;
     private double zKeyPoint;
 
-    Rod(int canopyMajorLength, int rotationalPosition, int clusterBaseHeight, int rodLength) {
-        int rotationIndex = rotationalPosition;
-        float canopyScaling = canopyMajorLength / 180;
-        double rodLengthRatios[] = { 0.37, 0.41, 0.50, 0.56, 0.63 };
-        double heightAdjustmentFactors[] = { 1.0, 0.96, 0.92, 0.88, 0.85 };
-        double branchLength = canopyMajorLength * rodLengthRatios[rotationIndex];
-        xKeyPoint = branchLength;
-        yKeyPoint = 72 * heightAdjustmentFactors[rotationIndex];
-        zKeyPoint = branchLength * 0.199;
+    Rod(int rodPosition, int clusterMaxRodLength) {
+        int rodIndex = rodPosition;
+
+        switch (rodPosition) {
+            case 0:
+                xKeyPoint = 10;
+                yKeyPoint = -1;
+                break;
+            case 1:
+                xKeyPoint = 10;
+                yKeyPoint = 1;
+                break;
+            case 2:
+                xKeyPoint = 8;
+                yKeyPoint = -2;
+                break;
+            case 3:
+                xKeyPoint = 8;
+                yKeyPoint = 2;
+                break;
+            case 4:
+                xKeyPoint = 8;
+                yKeyPoint = 0;
+                break;
+            default:
+                break;
+        }
+        zKeyPoint = clusterMaxRodLength - (rodIndex * 6);
 
         LXTransform transform = new LXTransform();
-        transform.rotateY(rotationalPosition * 45 * (Utils.PI / 180));
+        transform.rotateY(rodPosition * 45 * (Utils.PI / 180));
 
 
 //            double ratio = (newX - xKeyPoint[keyPointIndex - 1]) / (xKeyPoint[keyPointIndex] - xKeyPoint[keyPointIndex - 1]);
@@ -57,34 +76,41 @@ class Rod {
 class EntwinedCluster {
     List<Rod> rods;
 
-    EntwinedCluster(int canopyMajorLength, int clusterType, int clusterBaseHeight) {
+    EntwinedCluster(int clusterIndex) {
         List<Rod> _rods = new ArrayList<Rod>();
-        int rotationalPositions[];
-        rotationalPositions = new int[] { 0, 1, 2, 3, 4 };
+        int rodPositions[] = new int[] { 0, 1, 2, 3, 4 };
 
-        int rodLengths[];
-        switch (clusterType) {
-            // A -> 0,
-            // B -> 1,
-            // C -> 2,
-            // D -> 3
+        int clusterMaxRodLength;
+        switch (clusterIndex) {
+            // A -> 0, 1
+            // B -> 2, 3, 4, 5
+            // C -> 6, 7, 8, 9
+            // D -> 10, 11
             case 0:
-                rodLengths = new int[] { 54, 48, 42, 36, 30 };
-                break;
             case 1:
-                rodLengths = new int[] { 50, 44, 38, 32, 26 };
+                clusterMaxRodLength = 54;
                 break;
             case 2:
-                rodLengths = new int[] { 46, 40, 34, 28, 22 };
-                break;
             case 3:
-                rodLengths = new int[] { 42, 36, 30, 24, 18 };
+            case 4:
+            case 5:
+                clusterMaxRodLength = 50;
+                break;
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                clusterMaxRodLength = 46;
+                break;
+            case 10:
+            case 11:
+                clusterMaxRodLength = 42;
                 break;
             default:
-                rodLengths = new int[] {};
+                clusterMaxRodLength = 0;
         }
-        for (int i = 0; i < rotationalPositions.length; i++) {
-            Rod p = new Rod(canopyMajorLength, rotationalPositions[i], clusterBaseHeight, rodLengths[i]);
+        for (int i = 0; i < rodPositions.length; i++) {
+            Rod p = new Rod(rodPositions[i], clusterMaxRodLength);
             _rods.add(p);
         }
         this.rods = Collections.unmodifiableList(_rods);
@@ -127,7 +153,7 @@ class ShrubModel extends LXModel {
         private ShrubFixture(List<ShrubConfig> shrubConfigs, List<ShrubCubeConfig> shrubCubeConfigs) {
             for (int i = 0; i < shrubConfigs.size(); i++) {
                 ShrubConfig sc = shrubConfigs.get(i);
-                shrubs.add(new Shrub(shrubCubeConfigs, i, sc.x, sc.z, sc.ry, sc.canopyMajorLengths, sc.clusterBaseHeights));
+                shrubs.add(new Shrub(shrubCubeConfigs, i, sc.x, sc.z, sc.ry));
             }
             for (Shrub shrub : shrubs) {
                 for (LXPoint p : shrub.points) {
@@ -230,9 +256,8 @@ class Shrub extends LXModel {
      */
     public final float ry;
 
-    Shrub(List<ShrubCubeConfig> shrubCubeConfig, int shrubIndex, float x, float z, float ry, int[] canopyMajorLengths,
-            int[] clusterBaseHeights) {
-        super(new Fixture(shrubCubeConfig, shrubIndex, x, z, ry, canopyMajorLengths, clusterBaseHeights));
+    Shrub(List<ShrubCubeConfig> shrubCubeConfig, int shrubIndex, float x, float z, float ry) {
+        super(new Fixture(shrubCubeConfig, shrubIndex, x, z, ry));
         Fixture f = (Fixture) this.fixtures.get(0);
         this.index = shrubIndex;
         this.cubes = Collections.unmodifiableList(f.shrubCubes);
@@ -254,14 +279,14 @@ class Shrub extends LXModel {
         final List<EntwinedCluster> shrubClusters = new ArrayList<EntwinedCluster>();
         public final Map<String, ShrubCube[]> shrubIpMap = new HashMap<String, ShrubCube[]>();
         public final LXTransform shrubTransform;
-
-        Fixture(List<ShrubCubeConfig> shrubCubeConfig, int shrubIndex, float x, float z, float ry, int[] canopyMajorLengths,
-                int[] clusterBaseHeights) {
+        int NUM_CLUSTERS_IN_SHRUB = 12;
+        
+        Fixture(List<ShrubCubeConfig> shrubCubeConfig, int shrubIndex, float x, float z, float ry) {
             shrubTransform = new LXTransform();
             shrubTransform.translate(x, 0, z);
             shrubTransform.rotateY(ry * Utils.PI / 180);
-            for (int i = 0; i < canopyMajorLengths.length; i++) {
-                shrubClusters.add(new EntwinedCluster(canopyMajorLengths[i], i, clusterBaseHeights[i]));
+            for (int i = 0; i < NUM_CLUSTERS_IN_SHRUB; i++) {
+                shrubClusters.add(new EntwinedCluster(i));
             }
             for (ShrubCubeConfig cc : shrubCubeConfig) {
                 if (cc.shrubIndex == shrubIndex) {

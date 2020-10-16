@@ -171,7 +171,7 @@ class Model extends LXModel {
 
             for (int i = 0; i < shrubConfigs.size(); i++) {
                 ShrubConfig sc = shrubConfigs.get(i);
-                shrubs.add(new Shrub(shrubCubeConfigs, i, sc.x, sc.z, sc.ry, sc.canopyMajorLengths, sc.clusterBaseHeights));
+                shrubs.add(new Shrub(shrubCubeConfigs, i, sc.x, sc.z, sc.ry));
             }
             for (Shrub shrub : shrubs) {
                 for (LXPoint p : shrub.points) {
