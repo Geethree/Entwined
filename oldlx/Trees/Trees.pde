@@ -42,6 +42,8 @@ final static float BOLT = 22*Geometry.INCHES;
 
 static List<CubeConfig> cubeConfig;
 static List<TreeConfig> treeConfig;
+static List<ShrubCubeConfig> shrubCubeConfig;
+static List<ShrubConfig> shrubConfig;
 
 Model model;
 P3LX lx;
@@ -89,9 +91,10 @@ class ProcessingEngine extends Engine {
   void postCreateLX() {
     super.postCreateLX();
 
-    lx.addEffect(mappingTool = new MappingTool(lx, cubeConfig));
+    lx.addEffect(mappingTool = new MappingTool(lx, cubeConfig, shrubCubeConfig));
 
     Trees.this.cubeConfig = cubeConfig;
+    Trees.this.shrubCubeConfig = shrubCubeConfig;
     Trees.this.model = model;
     Trees.this.lx = getLX();
     Trees.this.output = output;
@@ -171,4 +174,3 @@ void keyPressed() {
       break;
   }
 }
-

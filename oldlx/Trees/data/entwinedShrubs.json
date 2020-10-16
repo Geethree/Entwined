@@ -1,7 +1,7 @@
 [
 	{
-			"canopyMajorLengths" : [240, 160, 96],
-			"clusterBaseHeights" : [20, 71, 112],
+			"canopyMajorLengths" : [1, 2, 3],
+			"clusterBaseHeights" : [1, 2, 3],
 			"ry" : 0,
 			"x" : 0,
 			"z" : 0
