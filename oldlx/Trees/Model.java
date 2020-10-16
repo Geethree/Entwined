@@ -257,7 +257,7 @@ class Model extends LXModel {
         for (Effect modelTransform : shrubModelTransforms) {
             ShrubModelTransform shrubModelTransform = (ShrubModelTransform) modelTransform;
             if (shrubModelTransform.isEnabled()) {
-                shrubModelTransform.transform((LXModel) this);
+                shrubModelTransform.transform(this);
             }
         }
         for (ShrubCube cube : shrubCubes) {
@@ -580,6 +580,7 @@ class ModelTransformTask implements LXLoopTask {
     @Override
     public void loop(double deltaMs) {
         model.runTransforms();
+        model.runShrubTransforms();
     }
 }
 class Geometry{

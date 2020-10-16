@@ -1,14 +1,13 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -20,11 +19,10 @@ import heronarts.lx.LX;
 import heronarts.lx.LXAutomationRecorder;
 import heronarts.lx.LXChannel;
 import heronarts.lx.LXEngine;
-import heronarts.lx.model.LXPoint;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.effect.BlurEffect;
 import heronarts.lx.effect.LXEffect;
-import heronarts.lx.model.LXModel;
+import heronarts.lx.model.LXPoint;
 import heronarts.lx.output.FadecandyOutput;
 import heronarts.lx.output.LXDatagram;
 import heronarts.lx.output.LXDatagramOutput;
@@ -48,6 +46,8 @@ abstract class Engine {
   final String projectPath;
   final List<CubeConfig> cubeConfig;
   final List<TreeConfig> treeConfigs;
+    final List<ShrubCubeConfig> shrubCubeConfig;
+    final List<ShrubConfig> shrubConfigs;
   final LX lx;
   final Model model;
   EngineController engineController;
@@ -74,7 +74,9 @@ abstract class Engine {
 
     cubeConfig = loadCubeConfigFile();
     treeConfigs = loadTreeConfigFile();
-    model = new Model(treeConfigs, cubeConfig);
+    shrubCubeConfig = loadShrubCubeConfigFile();
+    shrubConfigs = loadShrubConfigFile();
+    model = new Model(treeConfigs, cubeConfig, shrubConfigs, shrubCubeConfig);
 
     lx = createLX();
 
@@ -407,6 +409,16 @@ abstract class Engine {
     }.getType());
   }
 
+    List<ShrubCubeConfig> loadShrubCubeConfigFile() {
+        return loadJSONFile(Config.SHRUB_CUBE_CONFIG_FILE, new TypeToken<List<ShrubCubeConfig>>() {
+      }.getType());
+  }
+
+    List<ShrubConfig> loadShrubConfigFile() {
+        return loadJSONFile(Config.SHRUB_CONFIG_FILE, new TypeToken<List<ShrubConfig>>() {
+      }.getType());
+  }
+
   JsonArray loadSavedSetFile(String filename) {
     return loadJSONFile(filename, JsonArray.class);
   }
@@ -462,14 +474,16 @@ abstract class Engine {
     channel.addListener(new LXChannel.AbstractListener() {
       LXTransition transition;
 
-      public void patternWillChange(LXChannel channel, LXPattern pattern, LXPattern nextPattern) {
+      @Override
+            public void patternWillChange(LXChannel channel, LXPattern pattern, LXPattern nextPattern) {
         if (!channel.enabled.isOn()) {
           transition = nextPattern.getTransition();
           nextPattern.setTransition(null);
         }
       }
 
-      public void patternDidChange(LXChannel channel, LXPattern pattern) {
+      @Override
+            public void patternDidChange(LXChannel channel, LXPattern pattern) {
         if (transition != null) {
           pattern.setTransition(transition);
           transition = null;
@@ -480,6 +494,7 @@ abstract class Engine {
     if (noOpWhenNotRunning) {
       channel.enabled.setValue(channel.getFader().getValue() != 0);
       channel.getFader().addListener(new LXParameterListener() {
+        @Override
         public void onParameterChanged(LXParameter parameter) {
           channel.enabled.setValue(channel.getFader().getValue() != 0);
         }
@@ -629,7 +644,8 @@ abstract class Engine {
     //   "millis": 0
     // },
     lx.engine.addMessageListener(new LXEngine.MessageListener() {
-      public void onMessage(LXEngine engine, String message) {
+      @Override
+            public void onMessage(LXEngine engine, String message) {
         if (message.length() > 8 && message.substring(0, 7).equals("master/")) {
           double value = Double.parseDouble(message.substring(7));
           outputBrightness.setValue(value);
@@ -644,6 +660,7 @@ abstract class Engine {
       lx.engine.addLoopTask(automation[i]);
       automationStop[i] = new BooleanParameter("STOP", false);
       automationStop[i].addListener(new LXParameterListener() {
+        @Override
         public void onParameterChanged(LXParameter parameter) {
           if (parameter.getValue() > 0) {
             automation[ii].reset();
@@ -912,7 +929,8 @@ class TreesTransition extends LXTransition {
     this.channel = channel;
     this.channelTreeLevels = channelTreeLevels;
     blendMode.addListener(new LXParameterListener() {
-      public void onParameterChanged(LXParameter parameter) {
+      @Override
+            public void onParameterChanged(LXParameter parameter) {
         switch (blendMode.getValuei()) {
           case 0:
             blendType = LXColor.Blend.ADD;
@@ -931,7 +949,8 @@ class TreesTransition extends LXTransition {
     });
   }
 
-  protected void computeBlend(int[] c1, int[] c2, double progress) {
+  @Override
+    protected void computeBlend(int[] c1, int[] c2, double progress) {
     int treeIndex = 0;
     double treeLevel;
     for (Tree tree : model.trees) {
@@ -1010,7 +1029,8 @@ class BooleanParameterProxy extends BooleanParameter {
     super("Proxy", true);
   }
 
-  protected double updateValue(double value) {
+  @Override
+    protected double updateValue(double value) {
     for (BooleanParameter parameter : parameters) {
       parameter.setValue(value);
     }
@@ -1026,7 +1046,8 @@ class BasicParameterProxy extends BasicParameter {
     super("Proxy", value);
   }
 
-  protected double updateValue(double value) {
+  @Override
+    protected double updateValue(double value) {
     for (BasicParameter parameter : parameters) {
       parameter.setValue(value);
     }
