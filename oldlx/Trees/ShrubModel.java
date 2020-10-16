@@ -176,13 +176,11 @@ class ShrubModel extends LXModel {
 }
 
 class ShrubCubeConfig {
-    int shrubIndex;
+    int shrubIndex; // each shrubIndex maps to an ipAddress, so we're pushing ipAddress up to ShrubConfig
     int clusterIndex;
     int rodIndex;
-    String ipAddress;
     int outputIndex;
     int cubeSizeIndex;
-    boolean isActive;
 }
 
 class ShrubConfig {
@@ -191,6 +189,8 @@ class ShrubConfig {
     float ry;
     int[] canopyMajorLengths;
     int[] clusterBaseHeights;
+    String ipAddress;
+
 }
 
 class Shrub extends LXModel {
@@ -274,7 +274,6 @@ class Shrub extends LXModel {
                         p = null;
                     }
                     if (p != null) {
-                        cc.isActive = true;
                         ShrubCube cube = new ShrubCube(this.transformPoint(p), p, cc);
                         cubes.add(cube);
                         if (!ipMap.containsKey(cc.ipAddress)) {
@@ -298,7 +297,6 @@ class Shrub extends LXModel {
                         cc.outputIndex = i;
                         cc.clusterIndex = 0;
                         cc.ipAddress = ip;
-                        cc.isActive = false;
                         ShrubCube cube = new ShrubCube(new Vec3D(0, 0, 0), new Vec3D(0, 0, 0), cc);
                         cubes.add(cube);
                         ndbCubes[i] = cube;
