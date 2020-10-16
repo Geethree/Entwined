@@ -214,6 +214,19 @@ class Model extends LXModel {
         for (Cube cube : cubes) {
             cube.didTransform();
         }
+        
+        for (ShrubCube cube : shrubCubes) {
+            cube.resetTransform();
+        }
+        for (Effect modelTransform : shrubModelTransforms) {
+            ModelTransform shrubModelTransform = (ModelTransform) modelTransform;
+            if (shrubModelTransform.isEnabled()) {
+                shrubModelTransform.transform(this);
+            }
+        }
+        for (ShrubCube cube : shrubCubes) {
+            cube.didTransform();
+        }
     }
 
     /**
@@ -227,7 +240,7 @@ class Model extends LXModel {
     public final List<ShrubCube> shrubCubes;
     public final Map<String, ShrubCube[]> shrubIpMap = new HashMap<String, ShrubCube[]>();
 
-    private final ArrayList<Effect> shrubModelTransforms = new ArrayList<>();
+    private final ArrayList<ModelTransform> shrubModelTransforms = new ArrayList<>();
     private final List<ShrubConfig> shrubConfigs;
 
 
@@ -246,9 +259,9 @@ class Model extends LXModel {
         }
     }
 
-    public void addShrubModelTransform(ShrubModelTransform modelTransform) {
-        shrubModelTransforms.add(modelTransform);
-    }
+//    public void addShrubModelTransform(ShrubModelTransform modelTransform) {
+//        shrubModelTransforms.add(modelTransform);
+//    }
 
     public void runShrubTransforms() {
         for (ShrubCube cube : shrubCubes) {
@@ -559,7 +572,7 @@ abstract class ModelTransform extends Effect {
     ModelTransform(LX lx) {
         super(lx);
         model.addModelTransform(this);
-        shrubModel.addShrubModelTransform(this);
+//        ((ShrubModel) shrubModel).addShrubModelTransform(this);
     }
 
     @Override
@@ -580,7 +593,7 @@ class ModelTransformTask implements LXLoopTask {
     @Override
     public void loop(double deltaMs) {
         model.runTransforms();
-        model.runShrubTransforms();
+//        model.runShrubTransforms();
     }
 }
 class Geometry{

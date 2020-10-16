@@ -464,7 +464,7 @@ abstract class ShrubModelTransform extends Effect {
     ShrubModelTransform(LX lx) {
         super(lx);
 
-        shrubModel.addShrubModelTransform(this);
+        ((ShrubModel) shrubModel).addShrubModelTransform(this);
     }
 
     @Override

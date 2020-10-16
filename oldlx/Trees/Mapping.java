@@ -47,7 +47,7 @@ class MappingTool extends Effect {
   }
   
   ShrubCube getShrubCube(){
-    return shrubModel.shrubIpMap.get(this.shrubIpList[shrubIpIndex.getValuei()])[shrubOutputIndex.getValuei()];
+    return ((ShrubModel) shrubModel).shrubIpMap.get(this.shrubIpList[shrubIpIndex.getValuei()])[shrubOutputIndex.getValuei()];
   }
 
   ShrubCubeConfig getShrubConfig(){

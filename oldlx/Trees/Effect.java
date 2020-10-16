@@ -1,15 +1,16 @@
 import heronarts.lx.LX;
 import heronarts.lx.effect.LXEffect;
+import heronarts.lx.model.LXModel;
 
 abstract class Effect extends LXEffect {
 
   protected final Model model;
-  protected final ShrubModel shrubModel;
+  protected final LXModel shrubModel;
 
   Effect(LX lx) {
     super(lx);
     model = (Model)lx.model;
-    shrubModel = (ShrubModel)lx.model;
+    shrubModel = lx.model;
   }
 
   @Override
