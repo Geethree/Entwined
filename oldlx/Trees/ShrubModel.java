@@ -104,7 +104,7 @@ class ShrubModel extends LXModel {
     public final List<ShrubCube> shrubCubes;
     public final Map<String, ShrubCube[]> shrubIpMap = new HashMap<String, ShrubCube[]>();
 
-    private final ArrayList<ShrubModelTransform> shrubModelTransforms = new ArrayList<ShrubModelTransform>();
+    private final ArrayList<Effect> shrubModelTransforms = new ArrayList<>();
     private final List<ShrubConfig> shrubConfigs;
 
     ShrubModel(List<ShrubConfig> shrubConfigs, List<ShrubCubeConfig> shrubCubeConfig) {
@@ -151,22 +151,27 @@ class ShrubModel extends LXModel {
         }
     }
 
-    public void addShrubModelTransform(ShrubModelTransform modelTransform) {
-        shrubModelTransforms.add(modelTransform);
+    public void addShrubModelTransform(ShrubModelTransform shrubModelTransform) {
+        shrubModelTransforms.add(shrubModelTransform);
     }
 
     public void runShrubTransforms() {
         for (ShrubCube cube : shrubCubes) {
             cube.resetTransform();
         }
-        for (ShrubModelTransform modelTransform : shrubModelTransforms) {
-            if (modelTransform.isEnabled()) {
-                modelTransform.transform(this);
+        for (Effect modelTransform : shrubModelTransforms) {
+            ShrubModelTransform shrubModelTransform = (ShrubModelTransform) modelTransform;
+            if (shrubModelTransform.isEnabled()) {
+                shrubModelTransform.transform(this);
             }
         }
         for (ShrubCube cube : shrubCubes) {
             cube.didTransform();
         }
+    }
+
+    public void addShrubModelTransform(ModelTransform modelTransform) {
+        addShrubModelTransform(modelTransform);
     }
 }
 
@@ -468,7 +473,7 @@ abstract class ShrubModelTransform extends Effect {
     public void run(double deltaMs) {
     }
 
-    abstract void transform(ShrubModel model);
+    abstract void transform(LXModel lxModel);
 }
 
 class ShrubModelTransformTask implements LXLoopTask {

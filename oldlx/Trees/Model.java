@@ -184,6 +184,7 @@ class Model extends LXModel {
     public Vec3D getMountPoint(CubeConfig c) {
         Vec3D p = null;
         Tree tree;
+        Shrub shrub;
         try {
             tree = this.trees.get(c.treeIndex);
             p = tree.treeLayers.get(c.layerIndex).branches.get(c.branchIndex).availableMountingPoints.get(c.mountPointIndex);
@@ -197,6 +198,8 @@ class Model extends LXModel {
 
     public void addModelTransform(ModelTransform modelTransform) {
         modelTransforms.add(modelTransform);
+        shrubModelTransforms.add(modelTransform);
+
     }
 
     public void runTransforms() {
@@ -224,7 +227,7 @@ class Model extends LXModel {
     public final List<ShrubCube> shrubCubes;
     public final Map<String, ShrubCube[]> shrubIpMap = new HashMap<String, ShrubCube[]>();
 
-    private final ArrayList<ShrubModelTransform> shrubModelTransforms = new ArrayList<ShrubModelTransform>();
+    private final ArrayList<Effect> shrubModelTransforms = new ArrayList<>();
     private final List<ShrubConfig> shrubConfigs;
 
 
@@ -251,9 +254,10 @@ class Model extends LXModel {
         for (ShrubCube cube : shrubCubes) {
             cube.resetTransform();
         }
-        for (ShrubModelTransform modelTransform : shrubModelTransforms) {
-            if (modelTransform.isEnabled()) {
-                modelTransform.transform(this);
+        for (Effect modelTransform : shrubModelTransforms) {
+            ShrubModelTransform shrubModelTransform = (ShrubModelTransform) modelTransform;
+            if (shrubModelTransform.isEnabled()) {
+                shrubModelTransform.transform((LXModel) this);
             }
         }
         for (ShrubCube cube : shrubCubes) {
@@ -554,8 +558,8 @@ abstract class Layer extends LXLayer {
 abstract class ModelTransform extends Effect {
     ModelTransform(LX lx) {
         super(lx);
-
         model.addModelTransform(this);
+        shrubModel.addShrubModelTransform(this);
     }
 
     @Override
