@@ -176,11 +176,12 @@ class ShrubModel extends LXModel {
 }
 
 class ShrubCubeConfig {
-    int shrubIndex; // each shrubIndex maps to an ipAddress, so we're pushing ipAddress up to ShrubConfig
+    int shrubIndex; // each shrubIndex maps to an ipAddress, consider pushing ipAddress up to ShrubConfig
     int clusterIndex;
     int rodIndex;
     int outputIndex;
     int cubeSizeIndex;
+    String ipAddress;
 }
 
 class ShrubConfig {
@@ -189,8 +190,7 @@ class ShrubConfig {
     float ry;
     int[] canopyMajorLengths;
     int[] clusterBaseHeights;
-    String ipAddress;
-
+//    String ipAddress;
 }
 
 class Shrub extends LXModel {
@@ -235,9 +235,9 @@ class Shrub extends LXModel {
         super(new Fixture(shrubCubeConfig, shrubIndex, x, z, ry, canopyMajorLengths, clusterBaseHeights));
         Fixture f = (Fixture) this.fixtures.get(0);
         this.index = shrubIndex;
-        this.cubes = Collections.unmodifiableList(f.cubes);
+        this.cubes = Collections.unmodifiableList(f.shrubCubes);
         this.shrubClusters = f.shrubClusters;
-        this.ipMap = f.ipMap;
+        this.ipMap = f.shrubIpMap;
         this.x = x;
         this.z = z;
         this.ry = ry;
@@ -250,16 +250,16 @@ class Shrub extends LXModel {
 
     private static class Fixture extends LXAbstractFixture {
 
-        final List<ShrubCube> cubes = new ArrayList<ShrubCube>();
+        final List<ShrubCube> shrubCubes = new ArrayList<ShrubCube>();
         final List<EntwinedCluster> shrubClusters = new ArrayList<EntwinedCluster>();
-        public final Map<String, ShrubCube[]> ipMap = new HashMap<String, ShrubCube[]>();
-        public final LXTransform transform;
+        public final Map<String, ShrubCube[]> shrubIpMap = new HashMap<String, ShrubCube[]>();
+        public final LXTransform shrubTransform;
 
         Fixture(List<ShrubCubeConfig> shrubCubeConfig, int shrubIndex, float x, float z, float ry, int[] canopyMajorLengths,
                 int[] clusterBaseHeights) {
-            transform = new LXTransform();
-            transform.translate(x, 0, z);
-            transform.rotateY(ry * Utils.PI / 180);
+            shrubTransform = new LXTransform();
+            shrubTransform.translate(x, 0, z);
+            shrubTransform.rotateY(ry * Utils.PI / 180);
             for (int i = 0; i < canopyMajorLengths.length; i++) {
                 shrubClusters.add(new EntwinedCluster(canopyMajorLengths[i], i, clusterBaseHeights[i]));
             }
@@ -275,16 +275,16 @@ class Shrub extends LXModel {
                     }
                     if (p != null) {
                         ShrubCube cube = new ShrubCube(this.transformPoint(p), p, cc);
-                        cubes.add(cube);
-                        if (!ipMap.containsKey(cc.ipAddress)) {
-                            ipMap.put(cc.ipAddress, new ShrubCube[16]);
+                        shrubCubes.add(cube);
+                        if (!shrubIpMap.containsKey(cc.ipAddress)) {
+                            shrubIpMap.put(cc.ipAddress, new ShrubCube[16]);
                         }
-                        ShrubCube[] ndbCubes = ipMap.get(cc.ipAddress);
+                        ShrubCube[] ndbCubes = shrubIpMap.get(cc.ipAddress);
                         ndbCubes[cc.outputIndex] = cube;
                     }
                 }
             }
-            for (Map.Entry<String, ShrubCube[]> entry : ipMap.entrySet()) {
+            for (Map.Entry<String, ShrubCube[]> entry : shrubIpMap.entrySet()) {
                 String ip = entry.getKey();
                 ShrubCube[] ndbCubes = entry.getValue();
                 for (int i = 0; i < 16; i++) {
@@ -298,12 +298,12 @@ class Shrub extends LXModel {
                         cc.clusterIndex = 0;
                         cc.ipAddress = ip;
                         ShrubCube cube = new ShrubCube(new Vec3D(0, 0, 0), new Vec3D(0, 0, 0), cc);
-                        cubes.add(cube);
+                        shrubCubes.add(cube);
                         ndbCubes[i] = cube;
                     }
                 }
             }
-            for (ShrubCube cube : this.cubes) {
+            for (ShrubCube cube : this.shrubCubes) {
                 for (LXPoint p : cube.points) {
                     this.points.add(p);
                 }
@@ -311,10 +311,10 @@ class Shrub extends LXModel {
         }
 
         public Vec3D transformPoint(Vec3D point) {
-            this.transform.push();
-            this.transform.translate(point.x, point.y, point.z);
-            Vec3D result = new Vec3D(this.transform.x(), this.transform.y(), this.transform.z());
-            this.transform.pop();
+            this.shrubTransform.push();
+            this.shrubTransform.translate(point.x, point.y, point.z);
+            Vec3D result = new Vec3D(this.shrubTransform.x(), this.shrubTransform.y(), this.shrubTransform.z());
+            this.shrubTransform.pop();
             return result;
         }
     }
