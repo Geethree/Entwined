@@ -63,6 +63,7 @@ abstract class Engine {
   NFCEngine nfcEngine;
   LXListenableNormalizedParameter[] effectKnobParameters;
   final ChannelTreeLevels[] channelTreeLevels = new ChannelTreeLevels[NUM_CHANNELS];
+  final ChannelShrubLevels[] channelShrubLevels = new ChannelShrubLevels[NUM_CHANNELS];
   final BasicParameter dissolveTime = new BasicParameter("DSLV", 400, 50, 1000);
   final BasicParameter drumpadVelocity = new BasicParameter("DVEL", 1);
   final TSAutomationRecorder[] automation = new TSAutomationRecorder[Engine.NUM_AUTOMATION];
@@ -90,6 +91,7 @@ abstract class Engine {
 
     for (int i=0; i<NUM_CHANNELS; i++){
       channelTreeLevels[i] = new ChannelTreeLevels(model.trees.size());
+      channelShrubLevels[i] = new ChannelShrubLevels(model.shrubs.size());
     }
 
     configureChannels();
@@ -1003,6 +1005,69 @@ class TreesTransition extends LXTransition {
   }
 }
 
+class ShrubsTransition extends LXTransition {
+
+    private final LXChannel channel;
+    private final Model model;
+    public final DiscreteParameter blendMode = new DiscreteParameter("MODE", 4);
+    private LXColor.Blend blendType = LXColor.Blend.ADD;
+    final ChannelShrubLevels[] channelShrubLevels;
+    final BasicParameter fade = new BasicParameter("FADE", 1);
+
+    ShrubsTransition(LX lx, LXChannel channel, Model model, ChannelShrubLevels[] channelShrubLevels) {
+      super(lx);
+      this.model = model;
+      addParameter(blendMode);
+      this.channel = channel;
+      this.channelShrubLevels = channelShrubLevels;
+      blendMode.addListener(new LXParameterListener() {
+        @Override
+              public void onParameterChanged(LXParameter parameter) {
+          switch (blendMode.getValuei()) {
+            case 0:
+              blendType = LXColor.Blend.ADD;
+              break;
+            case 1:
+              blendType = LXColor.Blend.MULTIPLY;
+              break;
+            case 2:
+              blendType = LXColor.Blend.LIGHTEST;
+              break;
+            case 3:
+              blendType = LXColor.Blend.SUBTRACT;
+              break;
+          }
+        }
+      });
+    }
+
+    @Override
+      protected void computeBlend(int[] c1, int[] c2, double progress) {
+      int shrubIndex = 0;
+      double shrubLevel;
+      for (Shrub shrub : model.shrubs) {
+        shrubLevel = this.channelShrubLevels[this.channel.getIndex()].getValue(shrubIndex);
+        float amount = (float) (progress * shrubLevel);
+        if (amount == 0) {
+          for (LXPoint p : shrub.points) {
+            colors[p.index] = c1[p.index];
+          }
+        } else if (amount == 1) {
+          for (LXPoint p : shrub.points) {
+            int color2 = (blendType == LXColor.Blend.SUBTRACT) ? LX.hsb(0, 0, LXColor.b(c2[p.index])) : c2[p.index];
+            colors[p.index] = LXColor.blend(c1[p.index], color2, this.blendType);
+          }
+        } else {
+          for (LXPoint p : shrub.points) {
+            int color2 = (blendType == LXColor.Blend.SUBTRACT) ? LX.hsb(0, 0, LXColor.b(c2[p.index])) : c2[p.index];
+            colors[p.index] = LXColor.lerp(c1[p.index], LXColor.blend(c1[p.index], color2, this.blendType), amount);
+          }
+        }
+        shrubIndex++;
+      }
+    }
+  }
+
 class ChannelTreeLevels{
   private BasicParameter[] levels;
   ChannelTreeLevels(int numTrees){
@@ -1018,6 +1083,22 @@ class ChannelTreeLevels{
     return this.levels[i].getValue();
   }
 }
+
+class ChannelShrubLevels{
+    private BasicParameter[] levels;
+    ChannelShrubLevels(int numShrubs){
+      levels = new BasicParameter[numShrubs];
+      for (int i=0; i<numShrubs; i++){
+        this.levels[i] = new BasicParameter("shrub" + i, 1);
+      }
+    }
+    public BasicParameter getParameter(int i){
+      return this.levels[i];
+    }
+    public double getValue(int i){
+      return this.levels[i].getValue();
+    }
+  }
 
 class TSAutomationRecorder extends LXAutomationRecorder {
 
