@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -53,6 +54,8 @@ abstract class Engine {
   EngineController engineController;
   LXDatagramOutput output;
   LXDatagram[] datagrams;
+  LXDatagramOutput shrubOutput;
+  LXDatagram[] shrubDatagrams;
   BPMTool bpmTool;
   InterfaceController uiDeck;
   MidiEngine midiEngine;
@@ -453,6 +456,15 @@ abstract class Engine {
     saveJSONToFile(data, Config.CUBE_CONFIG_FILE);
   }
 
+  void saveShrubCubeConfigs(){
+      List<ShrubCubeConfig> shrubCubeConfigs = new ArrayList();
+      for (ShrubCube shrubCube: model.shrubCubes){
+          shrubCubeConfigs.add(shrubCube.config);
+      }
+      String data = new Gson().toJson(shrubCubeConfigs);
+      saveJSONToFile(data, Config.SHRUB_CUBE_CONFIG_FILE);
+    }
+  
   void saveJSONToFile(String data, String filename) {
     PrintWriter writer = null;
     try {
@@ -764,6 +776,21 @@ abstract class Engine {
     } catch (Exception x) {
       System.out.println(x);
     }
+    try {
+        shrubOutput = new LXDatagramOutput(lx);
+        shrubDatagrams = new LXDatagram[model.shrubIpMap.size()];
+        int ci = 0;
+        for (Entry<String, ShrubCube[]> entry : model.shrubIpMap.entrySet()) {
+          String shrubIp = entry.getKey();
+          ShrubCube[] shrubCubes = entry.getValue();
+          shrubOutput.addDatagram(shrubDatagrams[ci++] = Output.shrubClusterDatagram(shrubCubes).setAddress(shrubIp));
+        }
+        outputBrightness.parameters.add(shrubOutput.brightness);
+        shrubOutput.enabled.setValue(true);
+        lx.addOutput(shrubOutput);
+      } catch (Exception x) {
+        System.out.println(x);
+      }
   }
 
   /* configureFadeCandyOutput */
