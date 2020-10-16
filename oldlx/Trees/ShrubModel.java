@@ -99,32 +99,32 @@ class ShrubModel extends LXModel {
     public final List<Shrub> shrubs;
 
     /**
-     * Cubes in the model
+     * ShrubCubes in the model
      */
-    public final List<ShrubCube> cubes;
-    public final Map<String, ShrubCube[]> ipMap = new HashMap<String, ShrubCube[]>();
+    public final List<ShrubCube> shrubCubes;
+    public final Map<String, ShrubCube[]> shrubIpMap = new HashMap<String, ShrubCube[]>();
 
-    private final ArrayList<ShrubModelTransform> modelTransforms = new ArrayList<ShrubModelTransform>();
+    private final ArrayList<ShrubModelTransform> shrubModelTransforms = new ArrayList<ShrubModelTransform>();
     private final List<ShrubConfig> shrubConfigs;
 
     ShrubModel(List<ShrubConfig> shrubConfigs, List<ShrubCubeConfig> shrubCubeConfig) {
-        super(new Fixture(shrubConfigs, shrubCubeConfig));
+        super(new ShrubFixture(shrubConfigs, shrubCubeConfig));
         this.shrubConfigs = shrubConfigs;
-        Fixture f = (Fixture) this.fixtures.get(0);
+        ShrubFixture f = (ShrubFixture) this.fixtures.get(0);
         List<ShrubCube> _cubes = new ArrayList<ShrubCube>();
         this.shrubs = Collections.unmodifiableList(f.shrubs);
         for (Shrub shrub : this.shrubs) {
-            ipMap.putAll(shrub.ipMap);
+            shrubIpMap.putAll(shrub.ipMap);
             _cubes.addAll(shrub.cubes);
         }
-        this.cubes = Collections.unmodifiableList(_cubes);
+        this.shrubCubes = Collections.unmodifiableList(_cubes);
     }
 
-    private static class Fixture extends LXAbstractFixture {
+    private static class ShrubFixture extends LXAbstractFixture {
 
         final List<Shrub> shrubs = new ArrayList<Shrub>();
 
-        private Fixture(List<ShrubConfig> shrubConfigs, List<ShrubCubeConfig> shrubCubeConfigs) {
+        private ShrubFixture(List<ShrubConfig> shrubConfigs, List<ShrubCubeConfig> shrubCubeConfigs) {
             for (int i = 0; i < shrubConfigs.size(); i++) {
                 ShrubConfig sc = shrubConfigs.get(i);
                 shrubs.add(new Shrub(shrubCubeConfigs, i, sc.x, sc.z, sc.ry, sc.canopyMajorLengths, sc.clusterBaseHeights));
@@ -137,7 +137,7 @@ class ShrubModel extends LXModel {
         }
     }
 
-    public Vec3D getMountPoint(ShrubCubeConfig c) {
+    public Vec3D getShrubMountPoint(ShrubCubeConfig c) {
         Vec3D p = null;
         Shrub shrub;
         try {
@@ -151,20 +151,20 @@ class ShrubModel extends LXModel {
         }
     }
 
-    public void addModelTransform(ShrubModelTransform modelTransform) {
-        modelTransforms.add(modelTransform);
+    public void addShrubModelTransform(ShrubModelTransform modelTransform) {
+        shrubModelTransforms.add(modelTransform);
     }
 
-    public void runTransforms() {
-        for (ShrubCube cube : cubes) {
+    public void runShrubTransforms() {
+        for (ShrubCube cube : shrubCubes) {
             cube.resetTransform();
         }
-        for (ShrubModelTransform modelTransform : modelTransforms) {
+        for (ShrubModelTransform modelTransform : shrubModelTransforms) {
             if (modelTransform.isEnabled()) {
                 modelTransform.transform(this);
             }
         }
-        for (ShrubCube cube : cubes) {
+        for (ShrubCube cube : shrubCubes) {
             cube.didTransform();
         }
     }
@@ -461,7 +461,7 @@ abstract class ShrubModelTransform extends Effect {
     ShrubModelTransform(LX lx) {
         super(lx);
 
-        shrubModel.addModelTransform(this);
+        shrubModel.addShrubModelTransform(this);
     }
 
     @Override
@@ -481,7 +481,7 @@ class ShrubModelTransformTask implements LXLoopTask {
 
     @Override
     public void loop(double deltaMs) {
-        model.runTransforms();
+        model.runShrubTransforms();
     }
 }
 
