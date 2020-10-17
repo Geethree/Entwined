@@ -35,6 +35,7 @@ class UITrees extends UI3dComponent {
     endShape(CLOSE);
 
     drawTrees(ui);
+    drawShrubs(ui);
     drawLights(ui);
   }
 
@@ -66,6 +67,34 @@ class UITrees extends UI3dComponent {
     }
   }
 
+  private void drawShrubs(UI ui) {
+    noStroke();
+    fill(#333333);
+    for (Shrub shrub : model.shrubs) {
+      pushMatrix();
+      translate(shrub.x, 0, shrub.z);
+      rotateY(-shrub.ry * Utils.PI / 180);
+      drawShrub(ui, shrub);
+      popMatrix();
+    }
+  }
+
+  private void drawShrub(UI ui, Shrub shrub) {
+    int squareHalfSize = 2;
+    for (EntwinedCluster shrubCluster: shrub.shrubClusters){ // drew diamonds at every mount point. Crude, but does the job for now!
+      for (Rod rod: shrubCluster.rods){
+        Vec3D p = rod.mountingPoint;
+          beginShape();
+          vertex(p.x - squareHalfSize, p.y, p.z);
+          vertex(p.x, p.y, p.z + squareHalfSize);
+          vertex(p.x + squareHalfSize, p.y, p.z);
+          vertex(p.x, p.y, p.z - squareHalfSize);
+          endShape(CLOSE);
+        
+      }
+    }
+  }
+  
   private void drawLights(UI ui) {
 
     int[] colors;
@@ -95,12 +124,17 @@ class UITrees extends UI3dComponent {
     if (mappingTool.isEnabled()) {
       Cube cube = mappingTool.getCube();
       drawCube(cube, colors);
+      ShrubCube shrubCube = mappingTool.getShrubCube();
+      drawShrubCube(shrubCube, colors);
     }
     else {
       for (Cube cube : model.cubes) {
         if (cube.config.isActive) {
           drawCube(cube, colors);
         }
+      }
+      for (ShrubCube shrubCube : model.shrubCubes) {
+          drawShrubCube(shrubCube, colors);
       }
     }
     noLights();
@@ -122,6 +156,25 @@ class UITrees extends UI3dComponent {
     rotateX(-cube.rx * Utils.PI / 180);
     rotateZ(-cube.rz * Utils.PI / 180);
     box(cube.size, cube.size, cube.size);
+    popMatrix();
+  }
+  
+  void drawShrubCube(ShrubCube shrubCube, int[] colors) {
+    pushMatrix();
+    fill(colors[shrubCube.index]);
+    if (mappingTool.isEnabled()) {
+      Vec3D updatedPoint = model.getMountPoint(shrubCube.config);
+      if (updatedPoint != null) {
+        translate(updatedPoint.x, updatedPoint.y, updatedPoint.z);
+      }
+    }
+    else {
+      translate(shrubCube.x, shrubCube.y, shrubCube.z);
+    }
+    rotateY(-shrubCube.ry * Utils.PI / 180);
+    rotateX(-shrubCube.rx * Utils.PI / 180);
+    rotateZ(-shrubCube.rz * Utils.PI / 180);
+    box(shrubCube.size, shrubCube.size, shrubCube.size);
     popMatrix();
   }
 }
@@ -237,7 +290,7 @@ class UIChannelFaders extends UI2dContext {
   final static int HEIGHT = 140;
   final static int PERF_PADDING = PADDING + 1;
 
-  UIChannelFaders(final UI ui, final UITreeFaders treeFaders) {
+  UIChannelFaders(final UI ui, final UITreeFaders treeFaders, final UIShrubFaders shrubFaders) {
     super(ui, 180, Trees.this.height-HEIGHT-PADDING, WIDTH, HEIGHT);
     setBackgroundColor(#292929);
     setBorderColor(#444444);
@@ -270,6 +323,7 @@ class UIChannelFaders extends UI2dContext {
           lx.engine.focusedChannel.setValue(channel.getIndex());
 
           treeFaders.setChannel(channel.getIndex());
+          shrubFaders.setChannel(channel.getIndex());
           //treeLevelSliders[0].setParameter(channel.getParameter("tree0"));
         }
         protected void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
@@ -538,6 +592,62 @@ class UITreeFaders extends UI2dContext {
   public void setChannel(int channelIndex){
     for (int i = 0; i < numTrees; i++) {
       sliders[i].setParameter(channelTreeLevels[channelIndex].getParameter(i));
+    }
+  }
+}
+
+class UIShrubFaders extends UI2dContext {
+  final static int SPACER = 30;
+  final static int PADDING = 4;
+  final static int BUTTON_HEIGHT = 14;
+  final static int FADER_WIDTH = 40;
+  final static int HEIGHT = 140;
+  final public UISlider[] sliders;
+  final private ChannelShrubLevels[] channelShrubLevels;
+  final int numShrubs;
+  UIShrubFaders(final UI ui, final ChannelShrubLevels[] channelShrubLevels, final int numShrubs) {
+    super(ui, 700, Trees.this.height-HEIGHT-PADDING, 2 * SPACER + PADDING + (PADDING+FADER_WIDTH)*(numShrubs), HEIGHT);
+    sliders = new UISlider[numShrubs];
+    this.channelShrubLevels = channelShrubLevels;
+    this.numShrubs = numShrubs;
+    setBackgroundColor(#292929);
+    setBorderColor(#444444);
+    final UILabel[] labels = new UILabel[numShrubs];
+
+    for (int i = 0; i < numShrubs; i++) {
+      float xPos = PADDING + i*(PADDING+FADER_WIDTH) + SPACER;
+      sliders[i] = new UISlider(UISlider.Direction.VERTICAL, xPos, 1*BUTTON_HEIGHT + 2*PADDING, FADER_WIDTH, this.height - 3*BUTTON_HEIGHT - 5*PADDING) {
+        @Override
+        protected void onDraw(UI ui, PGraphics pg) {
+          int primaryColor = ui.theme.getPrimaryColor();
+          ui.theme.setPrimaryColor(0xff222222);
+          super.onDraw(ui, pg);
+          ui.theme.setPrimaryColor(primaryColor);
+        }
+      };
+      sliders[i]
+              .setShowLabel(false)
+              .addToContainer(this);
+      labels[i] = new UILabel(xPos, this.height - 2*PADDING - 2*BUTTON_HEIGHT, FADER_WIDTH, BUTTON_HEIGHT);
+      labels[i]
+              .setLabel("Tree" + (i+1))
+              .setAlignment(CENTER, CENTER)
+              .setFontColor(#999999)
+              .setBackgroundColor(#292929)
+              .setBorderColor(#666666)
+              .addToContainer(this);
+    }
+    setChannel(0);
+    float labelX = PADDING;
+    new UILabel(labelX, 2*PADDING+1*BUTTON_HEIGHT+2, 0, 0)
+            .setLabel("LEVEL")
+            .setFontColor(#666666)
+            .addToContainer(this);
+
+  }
+  public void setChannel(int channelIndex){
+    for (int i = 0; i < numShrubs; i++) {
+      sliders[i].setParameter(channelShrubLevels[channelIndex].getParameter(i));
     }
   }
 }
