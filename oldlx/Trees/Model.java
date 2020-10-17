@@ -277,6 +277,12 @@ class Model extends LXModel {
             cube.didTransform();
         }
     }
+
+    public void addModelTransform(Effect shrubModelTransform) {
+        shrubModelTransforms.add((ModelTransform) shrubModelTransform);
+
+        
+    }
 }
 
 class CubeConfig {

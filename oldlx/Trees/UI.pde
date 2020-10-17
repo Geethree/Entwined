@@ -163,7 +163,7 @@ class UITrees extends UI3dComponent {
     pushMatrix();
     fill(colors[shrubCube.index]);
     if (mappingTool.isEnabled()) {
-      Vec3D updatedPoint = model.getMountPoint(shrubCube.config);
+      Vec3D updatedPoint = model.getShrubMountPoint(shrubCube.config);
       if (updatedPoint != null) {
         translate(updatedPoint.x, updatedPoint.y, updatedPoint.z);
       }
