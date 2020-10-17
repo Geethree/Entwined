@@ -23,4 +23,3 @@ class AcidTrip extends TSPattern {
     }
   }
 }
-

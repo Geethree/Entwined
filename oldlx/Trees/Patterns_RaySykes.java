@@ -729,5 +729,3 @@ class IceCrystalLine {
     return lifeCycleState == 6 || lifeCycleState == -1;
   }
 }
-
-

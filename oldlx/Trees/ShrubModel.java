@@ -512,4 +512,3 @@ class ShrubModelTransformTask implements LXLoopTask {
         model.runShrubTransforms();
     }
 }
-

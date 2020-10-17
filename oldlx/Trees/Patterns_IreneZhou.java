@@ -1144,5 +1144,3 @@ class Pulleys extends TSTriggerablePattern { //ported from SugarCubes
 
 //   }
 // }
-
-

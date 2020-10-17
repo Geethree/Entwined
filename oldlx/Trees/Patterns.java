@@ -329,4 +329,3 @@ class ColorEffect2 extends ColorEffect {
     super(lx);
   }
 }
-

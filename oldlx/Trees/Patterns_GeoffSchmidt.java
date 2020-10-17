@@ -211,4 +211,3 @@ class Parallax extends TSPattern {
     }     
   } 
 }
-
