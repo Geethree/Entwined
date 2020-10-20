@@ -1,21 +1,7 @@
 [
 	{
-			"canopyMajorLengths" : [1, 2, 3],
-			"clusterBaseHeights" : [1, 2, 3],
-			"ry" : 0,
-			"x" : 0,
-			"z" : 0
-	},{
-			"canopyMajorLengths" : [21, 22, 23],
-			"clusterBaseHeights" : [21, 22, 23],
 			"ry" : 20,
 			"x" : 20,
 			"z" : 20
-	},{
-			"canopyMajorLengths" : [91, 92, 93],
-			"clusterBaseHeights" : [91, 92, 93],
-			"ry" : 90,
-			"x" : 90,
-			"z" : 90
 	}
 ]

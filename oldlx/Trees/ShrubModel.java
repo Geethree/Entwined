@@ -25,37 +25,44 @@ class Rod {
     private double yKeyPoint;
     private double zKeyPoint;
 
-    Rod(int rodPosition, int clusterMaxRodLength) {
+    Rod(int rodPosition, int clusterMaxRodLength, int clusterIndex) {
         int rodIndex = rodPosition;
+        zKeyPoint = (clusterMaxRodLength - (rodIndex * 6));
 
         switch (rodPosition) {
             case 0:
-                xKeyPoint = 10;
-                yKeyPoint = -1;
+                xKeyPoint = .75 * zKeyPoint;
+                yKeyPoint = .75 * zKeyPoint - 1;
                 break;
             case 1:
-                xKeyPoint = 10;
-                yKeyPoint = 1;
+                xKeyPoint = .75 * zKeyPoint;
+                yKeyPoint = .75 * zKeyPoint + 1;
                 break;
             case 2:
-                xKeyPoint = 8;
-                yKeyPoint = -2;
+                xKeyPoint = .75 * zKeyPoint - 2;
+                yKeyPoint = .75 * zKeyPoint - 2;
                 break;
             case 3:
-                xKeyPoint = 8;
-                yKeyPoint = 2;
+                xKeyPoint = .75 * zKeyPoint - 2;
+                yKeyPoint = .75 * zKeyPoint + 2;
                 break;
             case 4:
-                xKeyPoint = 8;
-                yKeyPoint = 0;
+                xKeyPoint = .75 * zKeyPoint - 2;
+                yKeyPoint = .75 * zKeyPoint;
                 break;
             default:
                 break;
         }
-        zKeyPoint = clusterMaxRodLength - (rodIndex * 6);
 
         LXTransform transform = new LXTransform();
-        transform.rotateY(rodPosition * 45 * (Utils.PI / 180));
+        // clockwise, starting at the longest left-most cluster
+        
+        // A -> 0, 1
+        // B -> 2, 3, 10, 11
+        // C -> 4, 5, 8, 9
+        // D -> 6, 7
+        
+        transform.rotateY(clusterIndex * 0.5236);
 
 
 //            double ratio = (newX - xKeyPoint[keyPointIndex - 1]) / (xKeyPoint[keyPointIndex] - xKeyPoint[keyPointIndex - 1]);
@@ -65,10 +72,44 @@ class Rod {
 //            transform.push();
 //            transform.translate((float) newX, (float) newY, (float) newZ);
 
-
-
+        transform.push();
+        transform.translate((float) xKeyPoint, (float) yKeyPoint, (float) zKeyPoint);
         this.mountingPoint = new Vec3D(transform.x(), transform.y(), transform.z());
-        transform.pop(); // (ashley) do we need this? I never took a graphics class so these calculations are confusing to me
+        transform.pop();
+       
+    
+    
+    
+//        List<Vec3D> _availableMountingPoints = new ArrayList<Vec3D>();
+//        LXTransform transform = new LXTransform();
+//        transform.rotateY(rotationalPosition * 45 * (Utils.PI / 180));
+//        double newX = xKeyPoints[0] + 2;
+//        while (newX < xKeyPoints[NUM_KEYPOINTS - 1]) {
+//            int keyPointIndex = 0;
+//            while (xKeyPoints[keyPointIndex] < newX && keyPointIndex < NUM_KEYPOINTS) {
+//                keyPointIndex++;
+//            }
+//            if (keyPointIndex < NUM_KEYPOINTS) {
+//                double ratio = (newX - xKeyPoints[keyPointIndex - 1]) / (xKeyPoints[keyPointIndex] - xKeyPoints[keyPointIndex - 1]);
+//                double newY = yKeyPoints[keyPointIndex - 1] + ratio * (yKeyPoints[keyPointIndex] - yKeyPoints[keyPointIndex - 1])
+//                        + layerBaseHeight;
+//                double newZ = zKeyPoints[keyPointIndex - 1] + ratio * (zKeyPoints[keyPointIndex] - zKeyPoints[keyPointIndex - 1]);
+//                transform.push();
+//                transform.translate((float) newX, (float) newY, (float) newZ);
+//                _availableMountingPoints.add(new Vec3D(transform.x(), transform.y(), transform.z()));
+//                transform.pop();
+//                transform.push();
+//                transform.translate((float) newX, (float) newY, (float) (-newZ));
+//                _availableMountingPoints.add(new Vec3D(transform.x(), transform.y(), transform.z()));
+//                transform.pop();
+//            }
+//            newX += holeSpacing;
+//        }
+//        this.availableMountingPoints = Collections.unmodifiableList(_availableMountingPoints);
+    
+    
+    
+    
     }
 
 }
@@ -82,35 +123,37 @@ class EntwinedCluster {
 
         int clusterMaxRodLength;
         switch (clusterIndex) {
+            // clockwise, starting at the longest left-most cluster
+            
             // A -> 0, 1
-            // B -> 2, 3, 4, 5
-            // C -> 6, 7, 8, 9
-            // D -> 10, 11
+            // B -> 2, 3, 10, 11
+            // C -> 4, 5, 8, 9
+            // D -> 6, 7
             case 0:
             case 1:
                 clusterMaxRodLength = 54;
                 break;
             case 2:
             case 3:
-            case 4:
-            case 5:
+            case 10:
+            case 11:
                 clusterMaxRodLength = 50;
                 break;
-            case 6:
-            case 7:
+            case 4:
+            case 5:
             case 8:
             case 9:
                 clusterMaxRodLength = 46;
                 break;
-            case 10:
-            case 11:
+            case 6:
+            case 7:
                 clusterMaxRodLength = 42;
                 break;
             default:
                 clusterMaxRodLength = 0;
         }
         for (int i = 0; i < rodPositions.length; i++) {
-            Rod p = new Rod(rodPositions[i], clusterMaxRodLength);
+            Rod p = new Rod(rodPositions[i], clusterMaxRodLength, clusterIndex);
             _rods.add(p);
         }
         this.rods = Collections.unmodifiableList(_rods);
@@ -215,8 +258,8 @@ class ShrubConfig {
     float x;
     float z;
     float ry;
-    int[] canopyMajorLengths;
-    int[] clusterBaseHeights;
+//    int[] canopyMajorLengths;
+//    int[] clusterBaseHeights;
 //    String ipAddress;
 }
 
@@ -294,7 +337,7 @@ class Shrub extends LXModel {
                     Vec3D p;
                     try {
                         p = shrubClusters.get(cc.clusterIndex).rods.get(cc.rodIndex).mountingPoint;
-                        System.out.println(cc.rodIndex);
+//                        System.out.println(cc.rodIndex);
 
                     } catch (Exception e) {
                         System.out.println("Error loading config point");
@@ -308,7 +351,7 @@ class Shrub extends LXModel {
                             shrubIpMap.put(cc.shrubIpAddress, new ShrubCube[60]);
                         }
                         ShrubCube[] ndbCubes = shrubIpMap.get(cc.shrubIpAddress);
-                        System.out.println(cc.shrubIpAddress);
+//                        System.out.println(cc.shrubIpAddress);
                         ndbCubes[cc.shrubOutputIndex] = cube;
                     }
                 }
