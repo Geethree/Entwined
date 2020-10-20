@@ -35,6 +35,14 @@ class DoubleHelix extends TSPattern {
         Utils.max(0, 100 - 2*LXUtils.wrapdistf(cube.transformedTheta, theta.getValuef() + coilf, 180))
       );
     }
+    for (ShrubCube cube : model.shrubCubes) {
+      float coilf = coil.getValuef() * (cube.cy - model.cy);
+      colors[cube.index] = lx.hsb(
+        lx.getBaseHuef() + .4f*Utils.abs(cube.transformedY - model.cy) +.2f* Utils.abs(cube.transformedTheta - 180),
+        100,
+        Utils.max(0, 100 - 2*LXUtils.wrapdistf(cube.transformedTheta, theta.getValuef() + coilf, 180))
+      );
+    }
   }
 }
 
@@ -61,6 +69,13 @@ class ColoredLeaves extends TSPattern {
     if (getChannel().getFader().getNormalized() == 0) return;
 
     for (Cube cube : model.cubes) {
+      colors[cube.index] = lx.hsb(
+        (360 + movement[cube.index  % movement.length].getValuef()) % 360,
+        100,
+        bright[cube.index % bright.length].getValuef()
+      );
+    }
+    for (ShrubCube cube : model.shrubCubes) {
       colors[cube.index] = lx.hsb(
         (360 + movement[cube.index  % movement.length].getValuef()) % 360,
         100,
@@ -195,6 +210,14 @@ class SweepPattern extends TSPattern {
         Utils.max(0, 100 - (100/width.getValuef())*Utils.abs(cube.cy - yp - height.getValuef()))
       );
     }
+    for (ShrubCube cube : model.shrubCubes) {
+      float yp = yPos.getValuef() + amp.getValuef() * Utils.sin((cube.cx - model.cx) * .01f + offset.getValuef());
+      colors[cube.index] = lx.hsb(
+        (lx.getBaseHuef() + Utils.abs(cube.x - model.cx) * .2f +  cube.cz*.1f + cube.cy*.1f) % 360,
+        Utils.constrain(Utils.abs(cube.transformedY - model.cy), 0, 100),
+        Utils.max(0, 100 - (100/width.getValuef())*Utils.abs(cube.cy - yp - height.getValuef()))
+      );
+    }
   }
 }
 
@@ -251,7 +274,15 @@ class TestPattern extends TSPattern {
         Utils.max(0, 100 - 30*Utils.abs((ci % CUBE_MOD) - cubeIndex.getValuef()))
       ));
       ++ci;
-    
+    }
+    ci = 0;
+    for (ShrubCube cube : model.shrubCubes) {
+      setColor(cube, lx.hsb(
+        (lx.getBaseHuef() + cube.cx + cube.cy) % 360,
+        100,
+        Utils.max(0, 100 - 30*Utils.abs((ci % CUBE_MOD) - cubeIndex.getValuef()))
+      ));
+      ++ci;
     }
   }
 }
