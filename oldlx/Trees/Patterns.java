@@ -136,6 +136,17 @@ class Twister extends TSPattern {
         df
       );
     }
+    for (ShrubCube cube : model.shrubCubes) {
+      float wrapdist = LXUtils.wrapdistf(cube.transformedTheta, spinf + (model.yMax - cube.transformedY)*coilf, 360);
+      float yn = (cube.transformedY / model.yMax);
+      float width = 10 + 30 * yn;
+      float df = Utils.max(0, 100 - (100 / 45) * Utils.max(0, wrapdist-width));
+      colors[cube.index] = lx.hsb(
+        (lx.getBaseHuef() + .2f*cube.transformedY - 360 - wrapdist) % 360,
+        Utils.max(0, 100 - 500*Utils.max(0, yn-.8f)),
+        df
+      );
+    }
   }
 }
 
