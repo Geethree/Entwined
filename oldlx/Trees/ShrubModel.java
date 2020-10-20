@@ -205,9 +205,10 @@ class ShrubCubeConfig {
     int shrubIndex; // each shrubIndex maps to an ipAddress, consider pushing ipAddress up to ShrubConfig
     int clusterIndex;
     int rodIndex;
-    int outputIndex;
+//    int mountPointIndex;
+    int shrubOutputIndex;
     int cubeSizeIndex;
-    String ipAddress;
+    String shrubIpAddress;
 }
 
 class ShrubConfig {
@@ -293,6 +294,8 @@ class Shrub extends LXModel {
                     Vec3D p;
                     try {
                         p = shrubClusters.get(cc.clusterIndex).rods.get(cc.rodIndex).mountingPoint;
+                        System.out.println(cc.rodIndex);
+
                     } catch (Exception e) {
                         System.out.println("Error loading config point");
                         System.out.println(e);
@@ -301,11 +304,12 @@ class Shrub extends LXModel {
                     if (p != null) {
                         ShrubCube cube = new ShrubCube(this.transformPoint(p), p, cc);
                         shrubCubes.add(cube);
-                        if (!shrubIpMap.containsKey(cc.ipAddress)) {
-                            shrubIpMap.put(cc.ipAddress, new ShrubCube[16]);
+                        if (!shrubIpMap.containsKey(cc.shrubIpAddress)) {
+                            shrubIpMap.put(cc.shrubIpAddress, new ShrubCube[60]);
                         }
-                        ShrubCube[] ndbCubes = shrubIpMap.get(cc.ipAddress);
-                        ndbCubes[cc.outputIndex] = cube;
+                        ShrubCube[] ndbCubes = shrubIpMap.get(cc.shrubIpAddress);
+                        System.out.println(cc.shrubIpAddress);
+                        ndbCubes[cc.shrubOutputIndex] = cube;
                     }
                 }
             }
@@ -319,9 +323,9 @@ class Shrub extends LXModel {
                         cc.shrubIndex = shrubIndex;
                         cc.rodIndex = 0;
                         cc.cubeSizeIndex = 0;
-                        cc.outputIndex = i;
+                        cc.shrubOutputIndex = i;
                         cc.clusterIndex = 0;
-                        cc.ipAddress = ip;
+                        cc.shrubIpAddress = ip;
                         ShrubCube cube = new ShrubCube(new Vec3D(0, 0, 0), new Vec3D(0, 0, 0), cc);
                         shrubCubes.add(cube);
                         ndbCubes[i] = cube;

@@ -29,8 +29,8 @@ class MappingTool extends Effect {
     this.shrubIpList = model.shrubIpMap.keySet().toArray();
     ipIndex = new DiscreteParameter("IP", ipList.length);
     outputIndex = new DiscreteParameter("POS", 16);
-    shrubIpIndex = new DiscreteParameter("IP", shrubIpList.length);
-    shrubOutputIndex = new DiscreteParameter("POS", 16);
+    shrubIpIndex = new DiscreteParameter("SHRUB_IP", shrubIpList.length);
+    shrubOutputIndex = new DiscreteParameter("SHRUB_POS", 5*12);
     addModulator(strobe).start();
     addLayer(new MappingLayer());
   }
