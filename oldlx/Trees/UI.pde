@@ -1306,15 +1306,16 @@ class UIShrubOutput extends UIWindow {
     super(ui, "LIVE SHRUB OUTPUT", x, y + 100, 140, UIWindow.TITLE_LABEL_HEIGHT - 1 + BUTTON_HEIGHT + SPACER + LIST_HEIGHT);
     float yPos = UIWindow.TITLE_LABEL_HEIGHT - 2;
     new UIButton(4, yPos, width-8, BUTTON_HEIGHT)
-            .setParameter(output.enabled)
+            .setParameter(shrubOutput.enabled)
             .setActiveLabel("Enabled")
             .setInactiveLabel("Disabled")
             .addToContainer(this);
     yPos += BUTTON_HEIGHT + SPACER;
 
     List<UIItemList.Item> items = new ArrayList<UIItemList.Item>();
-    for (LXDatagram datagram : datagrams) {
-      items.add(new DatagramItem(datagram));
+    for (LXDatagram shrubDatagram : shrubDatagrams) {
+      System.out.println(shrubDatagram);
+      items.add(new ShrubDatagramItem(shrubDatagram));
     }
     new UIItemList(1, yPos, width-2, LIST_HEIGHT)
             .setItems(items)
@@ -1322,13 +1323,13 @@ class UIShrubOutput extends UIWindow {
             .addToContainer(this);
   }
 
-  class DatagramItem extends UIItemList.AbstractItem {
+  class ShrubDatagramItem extends UIItemList.AbstractItem {
 
-    final LXDatagram datagram;
+    final LXDatagram shrubDatagram;
 
-    DatagramItem(LXDatagram datagram) {
-      this.datagram = datagram;
-      datagram.enabled.addListener(new LXParameterListener() {
+    ShrubDatagramItem(LXDatagram shrubDatagram) {
+      this.shrubDatagram = shrubDatagram;
+      shrubDatagram.enabled.addListener(new LXParameterListener() {
         public void onParameterChanged(LXParameter parameter) {
           redraw();
         }
@@ -1336,15 +1337,15 @@ class UIShrubOutput extends UIWindow {
     }
 
     String getLabel() {
-      return datagram.getAddress().toString();
+      return shrubDatagram.getAddress().toString();
     }
 
     boolean isSelected() {
-      return datagram.enabled.isOn();
+      return shrubDatagram.enabled.isOn();
     }
 
     void onMousePressed() {
-      datagram.enabled.toggle();
+      shrubDatagram.enabled.toggle();
     }
   }
 }

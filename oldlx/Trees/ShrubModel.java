@@ -336,7 +336,7 @@ class Shrub extends LXModel {
                 if (cc.shrubIndex == shrubIndex) {
                     Vec3D p;
                     try {
-                        p = shrubClusters.get(cc.clusterIndex).rods.get(cc.rodIndex).mountingPoint;
+                        p = shrubClusters.get(cc.clusterIndex).rods.get(cc.rodIndex - 1).mountingPoint;
 //                        System.out.println(cc.rodIndex);
 
                     } catch (Exception e) {

@@ -149,12 +149,11 @@ void configureUI() {
     .addComponent(new UITrees())
   );
   if (Config.enableOutputBigtree) {
-    lx.ui.addLayer(new UIOutput(lx.ui, 4, 4));
-        lx.ui.addLayer(new UIShrubOutput(lx.ui, 4, 4));
-    
+    lx.ui.addLayer(new UIOutput(lx.ui, 4, 4));    
   }
+  lx.ui.addLayer(new UIShrubOutput(lx.ui, 4, 4));
   lx.ui.addLayer(new UIMapping(lx.ui));
-    lx.ui.addLayer(new UIShrubMapping(lx.ui));
+  lx.ui.addLayer(new UIShrubMapping(lx.ui));
   
   UITreeFaders treeFaders = new UITreeFaders(lx.ui, channelTreeLevels, model.trees.size());
   lx.ui.addLayer(treeFaders);
